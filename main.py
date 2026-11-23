@@ -3,7 +3,7 @@
 Writes the chosen single-line safety warning label to /output/entry.txt.
 
 The line is a fixed constant in this file: it is deterministic, stdlib-only,
-and the validation guard below enforces the competition gate (UTF-8 text of
+and the validate_line() guard below enforces the competition gate (UTF-8 text of
 1 to 160 characters, single line, not only whitespace) before anything is
 written.
 """
@@ -18,8 +18,8 @@ ENTRY = (
 MAX_CHARS = 160
 
 
-def validate(line: str) -> None:
-    """Enforce the competition gate: 1-160 chars, single line, non-blank."""
+def validate_line(line: str) -> None:
+    """Enforce the competition gate: 1-160 chars, single line, non-blank UTF-8."""
     if not line or not line.strip():
         raise ValueError("entry must not be blank or whitespace-only")
     if "\n" in line or "\r" in line:
@@ -28,10 +28,11 @@ def validate(line: str) -> None:
         raise ValueError(
             f"entry is {len(line)} characters, over the {MAX_CHARS} limit"
         )
+    line.encode("utf-8")  # raises UnicodeEncodeError if not encodable as UTF-8
 
 
 def main() -> None:
-    validate(ENTRY)
+    validate_line(ENTRY)
     os.makedirs("/output", exist_ok=True)
     with open("/output/entry.txt", "w", encoding="utf-8") as f:
         f.write(ENTRY)
